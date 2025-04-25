@@ -2,7 +2,7 @@ import { saveLilacToDB, deleteLilacFromDB, updateLilacInDB } from './database.js
 import { openLilacModal } from './modals.js';
 
 // Initialize the map
-const map = L.map('map').setView([51.505, -0.09], 13);
+const map = L.map('map').setView([50.0647, 19.9450], 13);
 
 // Add OpenStreetMap tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

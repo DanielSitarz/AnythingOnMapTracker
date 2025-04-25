@@ -1,5 +1,6 @@
 import { saveLilacToDB, updateLilacInDB } from './database.js';
-import { renderLilacsOnMap, getLilacs, setLilacs, currentMarkerLocation } from './map.js';
+import { renderLilacsOnMap, getLilacs, setLilacs, currentMarkerLocation, map } from './map.js';
+import { processCsvImport, exportLilacsToCsv } from './csv.js';
 
 // Get modal elements
 const lilacModal = document.getElementById('lilac-modal');
@@ -9,8 +10,7 @@ const lilacForm = document.getElementById('lilac-form');
 const modalTitle = document.getElementById('modal-title');
 const lilacIdInput = document.getElementById('lilac-id');
 const lilacColorInput = document.getElementById('lilac-color');
-const timingEarlyInput = document.getElementById('timing-early');
-const timingLateInput = document.getElementById('timing-late');
+const lilacTimingInput = document.getElementById('lilac-timing');
 const lilacNoteInput = document.getElementById('lilac-note');
 
 // Get buttons
@@ -21,22 +21,20 @@ const processImportBtn = document.getElementById('process-import-btn');
 const csvFileInput = document.getElementById('csv-file');
 
 // Function to open the lilac modal
-function openLilacModal(title, lilac = null) {
+function openLilacModal(title, lilac = null, location = null) {
     modalTitle.textContent = title;
     lilacIdInput.value = lilac ? lilac.id : '';
     lilacColorInput.value = lilac ? lilac.color : 'white';
     if (lilac) {
-        if (lilac.timing === 'early') {
-            timingEarlyInput.checked = true;
-        } else {
-            timingLateInput.checked = true;
-        }
+        lilacTimingInput.value = lilac.timing;
     } else {
-        timingEarlyInput.checked = false;
-        timingLateInput.checked = false;
+        lilacTimingInput.value = 'early'; // Set a default value for new lilacs
     }
     lilacNoteInput.value = lilac ? lilac.note : '';
     lilacModal.style.display = 'block';
+    if (location) {
+        currentMarkerLocation = location;
+    }
 }
 
 // Function to close modals
@@ -60,9 +58,8 @@ window.addEventListener('click', function(event) {
 // Handle Add Lilac button click
 addLilacBtn.addEventListener('click', function() {
     // Get current map center for adding via button
-    const center = map.getCenter(); // map is imported from map.js
-    currentMarkerLocation = center; // currentMarkerLocation is imported from map.js
-    openLilacModal('Add Lilac');
+    const center = map.getCenter();
+    openLilacModal('Add Lilac', null, center); // Pass center to openLilacModal
 });
 
 // Handle Import CSV button click
@@ -72,7 +69,13 @@ importCsvBtn.addEventListener('click', function() {
 
 // Handle Export CSV button click
 exportCsvBtn.addEventListener('click', function() {
-    exportLilacsToCsv(); // exportLilacsToCsv is in csv.js
+    exportLilacsToCsv();
+});
+
+// Handle CSV file selection and import
+processImportBtn.addEventListener('click', function() {
+    const file = csvFileInput.files[0];
+    processCsvImport(file);
 });
 
 
@@ -82,7 +85,7 @@ lilacForm.addEventListener('submit', async function(event) {
 
     const id = lilacIdInput.value ? parseInt(lilacIdInput.value) : null;
     const color = lilacColorInput.value;
-    const timing = document.querySelector('input[name="lilac-timing"]:checked').value;
+    const timing = lilacTimingInput.value;
     const note = lilacNoteInput.value;
 
     let latitude, longitude;
@@ -141,4 +144,4 @@ lilacForm.addEventListener('submit', async function(event) {
     // currentMarkerLocation = null; // Reset location - handled by map click
 });
 
-export { openLilacModal, closeModals, importModal, processImportBtn, importCsvBtn, addLilacBtn, closeModalButtons, exportCsvBtn, lilacModal, csvFileInput };
+export { openLilacModal, closeModals, importModal, lilacModal };
