@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lilac Tracker</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="leaflet.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="map"></div>    
+    <!-- Floating Buttons -->
+    <div class="map-buttons">
+        <button id="add-lilac-btn">➕ Add Lilac</button>
+        <button id="import-csv-btn">📥 Import CSV</button>
+        <button id="export-csv-btn">📤 Export CSV</button>
+    </div>
+
+    <!-- Add/Edit Lilac Modal -->
+    <div id="lilac-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Add Lilac</h2>
+            <form id="lilac-form">
+                <input type="hidden" id="lilac-id">
+                <div>
+                    <label for="lilac-color">Color:</label>
+                    <select id="lilac-color" required>
+                        <option value="white">White</option>
+                        <option value="light purple">Light Purple</option>
+                        <option value="dark purple">Dark Purple</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="lilac-timing">Timing:</label>
+                    <input type="radio" id="timing-early" name="lilac-timing" value="early" required>
+                    <label for="timing-early">Early Bloomer</label>
+                    <input type="radio" id="timing-late" name="lilac-timing" value="late">
+                    <label for="timing-late">Late Bloomer</label>
+                </div>
+                <div>
+                    <label for="lilac-note">Note (Optional):</label>
+                    <textarea id="lilac-note"></textarea>
+                </div>
+                <button type="submit">Save Lilac</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Import Lilacs from CSV</h2>
+            <input type="file" id="csv-file" accept=".csv">
+            <div>
+                <input type="radio" id="import-overwrite" name="import-option" value="overwrite" checked>
+                <label for="import-overwrite">Overwrite existing data</label>
+            </div>
+            <div>
+                <input type="radio" id="import-merge" name="import-option" value="merge">
+                <label for="import-merge">Merge with existing data</label>
+            </div>
+            <button id="process-import-btn">Import</button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="leaflet.js"></script>
+    <!-- PapaParse for CSV -->
+    <script src="papaparse.min.js"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
