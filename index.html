@@ -3,48 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lilac Tracker</title>
+    <title>Thing Tracker</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="leaflet.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="map"></div>    
+    <div id="map"></div>
     <!-- Floating Buttons -->
     <div class="map-buttons">
-        <button id="add-lilac-btn">➕ Add Lilac</button>
+        <button id="add-thing-btn">➕ Add Thing</button>
         <button id="import-csv-btn">📥 Import CSV</button>
         <button id="export-csv-btn">📤 Export CSV</button>
+        <select id="filter-type">
+            <option value="">Show All Types</option>
+            <!-- Filter options will be populated by JavaScript -->
+        </select>
     </div>
 
-    <!-- Add/Edit Lilac Modal -->
-    <div id="lilac-modal" class="modal">
+    <!-- Add/Edit Thing Modal -->
+    <div id="thing-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2 id="modal-title">Add Lilac</h2>
-            <form id="lilac-form">
-                <input type="hidden" id="lilac-id">
+            <h2 id="modal-title">Add Thing</h2>
+            <form id="thing-form">
+                <input type="hidden" id="thing-id">
                 <div>
-                    <label for="lilac-color">Color:</label>
-                    <select id="lilac-color" required>
-                        <option value="white">White</option>
-                        <option value="light purple">Light Purple</option>
-                        <option value="dark purple">Dark Purple</option>
+                    <label for="thing-type">Type:</label>
+                    <select id="thing-type" required>
+                        <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
-                <div>
-                    <label for="lilac-timing">Timing:</label>
-                    <select id="lilac-timing" required>
-                        <option value="early">Early Bloomer</option>
-                        <option value="late">Late Bloomer</option>
-                    </select>
+                <div id="thing-details-container">
+                    <!-- Dynamic detail fields will be added here by JavaScript -->
                 </div>
-                <div>
-                    <label for="lilac-note">Note (Optional):</label>
-                    <textarea id="lilac-note"></textarea>
-                </div>
-                <button type="submit">Save Lilac</button>
+                <button type="submit">Save Thing</button>
             </form>
         </div>
     </div>
@@ -53,7 +47,7 @@
     <div id="import-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Import Lilacs from CSV</h2>
+            <h2>Import Things from CSV</h2>
             <input type="file" id="csv-file" accept=".csv">
             <div>
                 <input type="radio" id="import-overwrite" name="import-option" value="overwrite" checked>
@@ -76,6 +70,7 @@
     <script src="map.js" type="module"></script>
     <script src="modals.js" type="module"></script>
     <script src="csv.js" type="module"></script>
+    <script src="thingsConfig.js" type="module"></script>
     <script src="main.js" type="module"></script>
 </body>
 </html>

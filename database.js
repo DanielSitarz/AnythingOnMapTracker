@@ -1,6 +1,6 @@
 // Initialize IndexedDB
-const dbName = 'lilacTrackerDB';
-const dbVersion = 1;
+const dbName = 'thingTrackerDB';
+const dbVersion = 1; // Increment version if changing object store structure
 let db;
 
 // Create a promise for DB readiness
@@ -20,117 +20,123 @@ const dbReadyPromise = new Promise((resolve, reject) => {
 
     request.onupgradeneeded = function(event) {
         db = event.target.result;
-        const objectStore = db.createObjectStore('lilacs', { keyPath: 'id', autoIncrement: true });
-        objectStore.createIndex('location', ['latitude', 'longitude'], { unique: false });
+        // Check if the 'things' object store already exists before creating
+        if (!db.objectStoreNames.contains('things')) {
+            const objectStore = db.createObjectStore('things', { keyPath: 'id', autoIncrement: true });
+            objectStore.createIndex('location', ['latitude', 'longitude'], { unique: false });
+            objectStore.createIndex('type', 'type', { unique: false }); // Add index for type
+        }
+        // If upgrading from a previous version (e.g., v1 with 'lilacs'), handle migration here if necessary
+        // For this change, we are effectively starting fresh with a new DB name, so no migration needed from 'lilacTrackerDB'
     };
 });
 
 
-// Function to load lilacs from IndexedDB
-function loadLilacsFromDB() {
+// Function to load things from IndexedDB
+function loadThingsFromDB() {
     return dbReadyPromise.then(() => { // Wait for the DB to be ready
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['lilacs'], 'readonly');
-            const objectStore = transaction.objectStore('lilacs');
+            const transaction = db.transaction(['things'], 'readonly');
+            const objectStore = transaction.objectStore('things');
             const request = objectStore.getAll();
 
             request.onsuccess = function(event) {
-                const lilacs = event.target.result;
-                // console.log("Lilacs loaded from DB:", lilacs);
-                resolve(lilacs);
+                const things = event.target.result;
+                // console.log("Things loaded from DB:", things);
+                resolve(things);
             };
 
             request.onerror = function(event) {
-                console.error("Error loading lilacs from DB:", event.target.errorCode);
+                console.error("Error loading things from DB:", event.target.errorCode);
                 reject(event.target.errorCode);
             };
         });
     });
 }
 
-// Function to save a lilac to IndexedDB
-function saveLilacToDB(lilac) {
+// Function to save a thing to IndexedDB
+function saveThingToDB(thing) {
     return dbReadyPromise.then(() => {
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['lilacs'], 'readwrite');
-            const objectStore = transaction.objectStore('lilacs');
-            const request = objectStore.add(lilac);
+            const transaction = db.transaction(['things'], 'readwrite');
+            const objectStore = transaction.objectStore('things');
+            const request = objectStore.add(thing);
 
             request.onsuccess = function(event) {
-                console.log("Lilac saved to DB:", lilac);
-                lilac.id = event.target.result; // Update lilac object with the generated ID
-                resolve(lilac);
+                console.log("Thing saved to DB:", thing);
+                thing.id = event.target.result; // Update thing object with the generated ID
+                resolve(thing);
             };
 
             request.onerror = function(event) {
-                console.error("Error saving lilac to DB:", event.target.errorCode);
+                console.error("Error saving thing to DB:", event.target.errorCode);
                 reject(event.target.errorCode);
             };
         });
     });
 }
 
-// Function to update a lilac in IndexedDB
-function updateLilacInDB(lilac) {
+// Function to update a thing in IndexedDB
+function updateThingInDB(thing) {
     return dbReadyPromise.then(() => {
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['lilacs'], 'readwrite');
-            const objectStore = transaction.objectStore('lilacs');
-            const request = objectStore.put(lilac);
+            const transaction = db.transaction(['things'], 'readwrite');
+            const objectStore = transaction.objectStore('things');
+            const request = objectStore.put(thing);
 
             request.onsuccess = function(event) {
-                console.log("Lilac updated in DB:", lilac);
-                resolve(lilac);
+                console.log("Thing updated in DB:", thing);
+                resolve(thing);
             };
 
             request.onerror = function(event) {
-                console.error("Error updating lilac in DB:", event.target.errorCode);
+                console.error("Error updating thing in DB:", event.target.errorCode);
                 reject(event.target.errorCode);
             };
         });
     });
 }
 
-// Function to delete a lilac from IndexedDB
-function deleteLilacFromDB(lilacId) {
+// Function to delete a thing from IndexedDB
+function deleteThingFromDB(thingId) {
     return dbReadyPromise.then(() => {
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['lilacs'], 'readwrite');
-            const objectStore = transaction.objectStore('lilacs');
-            const request = objectStore.delete(lilacId);
+            const transaction = db.transaction(['things'], 'readwrite');
+            const objectStore = transaction.objectStore('things');
+            const request = objectStore.delete(thingId);
 
             request.onsuccess = function(event) {
-                console.log("Lilac deleted from DB with ID:", lilacId);
+                console.log("Thing deleted from DB with ID:", thingId);
                 resolve();
             };
 
             request.onerror = function(event) {
-                console.error("Error deleting lilac from DB:", event.target.errorCode);
+                console.error("Error deleting thing from DB:", event.target.errorCode);
                 reject(event.target.errorCode);
             };
         });
     });
 }
 
-// Function to clear all lilacs from IndexedDB
-function clearAllLilacsFromDB() {
+// Function to clear all things from IndexedDB
+function clearAllThingsFromDB() {
     return dbReadyPromise.then(() => {
         return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['lilacs'], 'readwrite');
-            const objectStore = transaction.objectStore('lilacs');
+            const transaction = db.transaction(['things'], 'readwrite');
+            const objectStore = db.transaction(['things'], 'readwrite').objectStore('things');
             const request = objectStore.clear();
 
             request.onsuccess = function() {
-                console.log("All lilacs cleared from DB.");
+                console.log("All things cleared from DB.");
                 resolve();
             };
 
             request.onerror = function(event) {
-                console.error("Error clearing lilacs from DB:", event.target.errorCode);
+                console.error("Error clearing things from DB:", event.target.errorCode);
                 reject(event.target.errorCode);
             };
         });
     });
 }
 
-export { loadLilacsFromDB, saveLilacToDB, updateLilacInDB, deleteLilacFromDB, clearAllLilacsFromDB };
+export { loadThingsFromDB, saveThingToDB, updateThingInDB, deleteThingFromDB, clearAllThingsFromDB };

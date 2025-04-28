@@ -1,0 +1,17 @@
+[
+  {
+    "type": "Lilac",
+    "markerColor": "purple",
+    "details": [
+      {"name": "Color", "type": "select", "options": ["purple", "white"]},      
+      {"name": "Timing", "type": "select", "options": ["early", "mid", "late"]}
+    ]
+  },
+  {
+    "type": "Wild Strawberry",
+    "markerColor": "red",
+    "details": [
+      {"name": "Description", "type": "text"}
+    ]
+  }
+]

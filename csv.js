@@ -1,17 +1,32 @@
-import { getLilacs, setLilacs, renderLilacsOnMap } from './map.js';
-import { saveLilacToDB, clearAllLilacsFromDB } from './database.js';
+import { getThings, setThings, renderThingsOnMap } from './map.js';
+import { saveThingToDB, clearAllThingsFromDB } from './database.js';
 import { closeModals } from './modals.js';
 
-// Function to export lilacs to CSV
-function exportLilacsToCsv() {
-    const lilacs = getLilacs();
-    const csvData = lilacs.map(lilac => ({
-        latitude: lilac.latitude,
-        longitude: lilac.longitude,
-        color: lilac.color,
-        timing: lilac.timing,
-        note: lilac.note || '' // Ensure note is not undefined
-    }));
+// Function to export things to CSV
+function exportThingsToCsv() {
+    const things = getThings();
+
+    // Determine all unique detail keys across all things
+    const detailKeys = new Set();
+    things.forEach(thing => {
+        if (thing.details) {
+            Object.keys(thing.details).forEach(key => detailKeys.add(key));
+        }
+    });
+
+    const csvData = things.map(thing => {
+        const item = {
+            type: thing.type,
+            latitude: thing.latitude,
+            longitude: thing.longitude,
+            note: thing.note || '' // Ensure note is not undefined
+        };
+        // Add detail properties
+        detailKeys.forEach(key => {
+            item[key] = thing.details ? thing.details[key] || '' : ''; // Add detail value or empty string
+        });
+        return item;
+    });
 
     const csv = Papa.unparse(csvData);
 
@@ -19,7 +34,7 @@ function exportLilacsToCsv() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'lilac_tracker_data.csv');
+    link.setAttribute('download', 'thing_tracker_data.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -33,36 +48,44 @@ async function processCsvImport(file) {
             header: true,
             dynamicTyping: true,
             complete: async function(results) {
-                const importedLilacs = results.data.map(item => ({
-                    // Assuming CSV headers match these keys
-                    latitude: parseFloat(item.latitude),
-                    longitude: parseFloat(item.longitude),
-                    color: item.color,
-                    timing: item.timing,
-                    note: item.note || ''
-                })).filter(lilac => !isNaN(lilac.latitude) && !isNaN(lilac.longitude)); // Filter out invalid entries
+                const importedThings = results.data.map(item => {
+                    const thing = {
+                        type: item.type,
+                        latitude: parseFloat(item.latitude),
+                        longitude: parseFloat(item.longitude),
+                        note: item.note || '',
+                        details: {}
+                    };
+                    // Extract detail properties (all columns except type, latitude, longitude, note)
+                    Object.keys(item).forEach(key => {
+                        if (!['type', 'latitude', 'longitude', 'note'].includes(key)) {
+                            thing.details[key] = item[key];
+                        }
+                    });
+                    return thing;
+                }).filter(thing => !isNaN(thing.latitude) && !isNaN(thing.longitude) && thing.type); // Filter out invalid entries
 
                 const importOption = document.querySelector('input[name="import-option"]:checked').value;
 
                 if (importOption === 'overwrite') {
-                    setLilacs(importedLilacs);
+                    setThings(importedThings);
                     // Clear existing data in DB and save new data
-                    await clearAllLilacsFromDB();
-                    for (const lilac of importedLilacs) {
-                        await saveLilacToDB(lilac);
+                    await clearAllThingsFromDB();
+                    for (const thing of importedThings) {
+                        await saveThingToDB(thing);
                     }
-                    renderLilacsOnMap();
+                    renderThingsOnMap();
                     closeModals();
                 } else if (importOption === 'merge') {
-                    // Simple merge: add imported lilacs to existing ones
+                    // Simple merge: add imported things to existing ones
                     // Note: This doesn't handle potential duplicates based on location/properties
-                    const currentLilacs = getLilacs();
-                    for (const lilac of importedLilacs) {
-                        const savedLilac = await saveLilacToDB(lilac);
-                        currentLilacs.push(savedLilac);
+                    const currentThings = getThings();
+                    for (const thing of importedThings) {
+                        const savedThing = await saveThingToDB(thing);
+                        currentThings.push(savedThing);
                     }
-                    setLilacs(currentLilacs);
-                    renderLilacsOnMap();
+                    setThings(currentThings);
+                    renderThingsOnMap();
                     closeModals();
                 }
             }
@@ -72,4 +95,4 @@ async function processCsvImport(file) {
     }
 }
 
-export { exportLilacsToCsv, processCsvImport };
+export { exportThingsToCsv, processCsvImport };
