@@ -1,5 +1,5 @@
 import { loadThingsFromDB } from './database.js';
-import { renderThingsOnMap, setThings, filterMapByTypes } from './map.js'; // Import filterMapByTypes
+import { renderThingsOnMap, setThings, filterMapByTypes, refreshCurrentLocation } from './map.js';
 import { getThingsConfig } from './thingsConfig.js'; // Import getThingsConfig
 
 const filterSidebar = document.getElementById('filter-sidebar');
@@ -9,6 +9,7 @@ const filterTypeList = document.getElementById('filter-type-list');
 const addThingBtn = document.getElementById('add-thing-btn');
 const importCsvBtn = document.getElementById('import-csv-btn');
 const exportCsvBtn = document.getElementById('export-csv-btn');
+const refreshLocationBtn = document.getElementById('refresh-location-btn');
 
 let selectedTypes = new Set();
 
@@ -85,3 +86,8 @@ loadThingsFromDB().then(things => {
 // Ensure those scripts are updated to target the buttons in the bottom bar if necessary.
 // If they are handled in main.js, they will automatically target the correct elements
 // as the IDs remain the same.
+
+// Handle refresh location button
+refreshLocationBtn.addEventListener('click', () => {
+    refreshCurrentLocation();
+});

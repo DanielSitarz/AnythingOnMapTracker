@@ -345,3 +345,65 @@ body {
     font-weight: normal;
     color: #333;
 }
+/* Modern Popup Styles */
+.leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    padding: 0; /* Remove default padding */
+}
+
+.leaflet-popup-content {
+    margin: 0; /* Remove default margin */
+}
+
+.modern-popup .popup-content {
+    padding: 20px;
+    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #333;
+}
+
+.modern-popup .popup-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #007bff;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modern-popup .popup-details p {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.modern-popup .popup-details p:last-child {
+    margin-bottom: 0;
+}
+
+.modern-popup .popup-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px; /* Space between buttons */
+}
+
+.modern-popup .popup-actions .btn {
+    padding: 8px 15px; /* Adjust button padding for popup */
+    font-size: 0.9rem;
+    box-shadow: none; /* Remove shadow for popup buttons */
+}
+
+.modern-popup .popup-actions .edit-thing {
+    background-color: #007bff; /* Blue */
+    color: white;
+}
+
+.modern-popup .popup-actions .edit-thing:hover {
+    background-color: #0056b3;
+}
+
+.modern-popup .popup-actions .delete-thing {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+.modern-popup .popup-actions .delete-thing:hover {
+    background-color: #c82333;
+}

@@ -3,24 +3,25 @@ import { openThingModal } from './modals.js';
 import { getThingConfig } from './thingsConfig.js';
 
 // Initialize the map
-const map = L.map('map').setView([50.0647, 19.9450], 13);
+const map = L.map('map', { maxZoom: 20 }).setView([50.0647, 19.9450], 16);
 
 // Add OpenStreetMap tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 20
 }).addTo(map);
 
 let things = []; // Store thing data locally
 
 // Store map layers by thing ID for easier access
 const thingLayers = new Map();
+const markerClusterGroup = L.markerClusterGroup();
+map.addLayer(markerClusterGroup);
 
 // Function to render things on the map
 function renderThingsOnMap() {
     // Clear existing markers (if any)
-    thingLayers.forEach(layer => {
-        map.removeLayer(layer);
-    });
+    markerClusterGroup.clearLayers();
     thingLayers.clear();
 
     things.forEach(thing => {
@@ -47,21 +48,35 @@ function renderThingsOnMap() {
             html: `<span style="${markerHtmlStyles}" />`
         });
 
-        const marker = L.marker([thing.latitude, thing.longitude], { icon: icon }).addTo(map);
+        const marker = L.marker([thing.latitude, thing.longitude], { icon: icon });
 
-        let popupContent = `<b>Type:</b> ${thing.type}<br>`;
+        let popupContent = `
+            <div class="popup-content">
+                <h3>${thing.type}</h3>
+                <div class="popup-details">
+        `;
+
         if (thing.details) {
             for (const [key, value] of Object.entries(thing.details)) {
-                popupContent += `<b>${key}:</b> ${value}<br>`;
+                popupContent += `<p><b>${key}:</b> ${value}</p>`;
             }
         }
         if (thing.note) {
-             popupContent += `<b>Note:</b> ${thing.note}<br>`;
+             popupContent += `<p><b>Note:</b> ${thing.note}</p>`;
         }
-        popupContent += `<button class="edit-thing" data-id="${thing.id}">Edit</button>
-                         <button class="delete-thing" data-id="${thing.id}">Delete</button>`;
 
-        marker.bindPopup(popupContent);
+        popupContent += `
+                </div>
+                <div class="popup-actions">
+                    <button class="btn edit-thing" data-id="${thing.id}">Edit</button>
+                    <button class="btn delete-thing" data-id="${thing.id}">Delete</button>
+                </div>
+            </div>
+        `;
+
+        marker.bindPopup(popupContent, {
+            className: 'modern-popup' // Add a class for custom styling
+        });
 
         marker.on('popupopen', function() {
             document.querySelector(`.edit-thing[data-id="${thing.id}"]`).addEventListener('click', handleEditThing);
@@ -70,24 +85,20 @@ function renderThingsOnMap() {
 
         thingLayers.set(thing.id, marker); // Store the marker layer
     });
+    markerClusterGroup.addLayers(Array.from(thingLayers.values()));
 }
 
 // Function to filter map markers by types
 function filterMapByTypes(typesToShow) {
+    markerClusterGroup.clearLayers(); // Clear all layers from the cluster group
+    const layersToShow = [];
     thingLayers.forEach((layer, thingId) => {
         const thing = things.find(t => t.id === thingId);
-        if (thing) {
-            if (typesToShow.includes(thing.type)) {
-                if (!map.hasLayer(layer)) {
-                    map.addLayer(layer);
-                }
-            } else {
-                if (map.hasLayer(layer)) {
-                    map.removeLayer(layer);
-                }
-            }
+        if (thing && typesToShow.includes(thing.type)) {
+            layersToShow.push(layer);
         }
     });
+    markerClusterGroup.addLayers(layersToShow); // Add only the filtered layers back
 }
 
 // Function to handle editing a thing
@@ -135,12 +146,8 @@ map.on('click', function(e) {
 map.locate({setView: true, maxZoom: 16});
 
 function onLocationFound(e) {
-    const radius = e.accuracy;
-
-    L.marker(e.latlng).addTo(map)
-        .bindPopup("You are within " + radius + " meters of this point").openPopup();
-
-    L.circle(e.latlng, radius).addTo(map);
+    // Location found, but we don't add a default marker or circle
+    // The map view is already set by map.locate({setView: true, maxZoom: 16});
 }
 
 map.on('locationfound', onLocationFound);
@@ -159,4 +166,8 @@ function getThings() {
     return things;
 }
 
-export { map, renderThingsOnMap, setThings, getThings, filterMapByTypes, setCurrentMarkerLocation, currentMarkerLocation };
+function refreshCurrentLocation() {
+    map.locate({setView: true, maxZoom: 16});
+}
+
+export { map, renderThingsOnMap, setThings, getThings, filterMapByTypes, setCurrentMarkerLocation, currentMarkerLocation, refreshCurrentLocation };
