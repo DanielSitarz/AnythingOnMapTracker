@@ -8,9 +8,9 @@ async function loadThingsConfig() {
         }
         thingsConfig = await response.json();
         console.log("Things configuration loaded:", thingsConfig);
-        // After loading, populate the selects
+        // After loading, populate the selects and the filter sidebar
         populateThingTypeSelect(document.getElementById('thing-type'));
-        populateFilterTypeSelect(document.getElementById('filter-type'));
+        populateFilterSidebar(document.getElementById('filter-type-list'));
     } catch (error) {
         console.error("Failed to load things configuration:", error);
     }
@@ -36,21 +36,24 @@ function populateThingTypeSelect(selectElement) {
     });
 }
 
-// Function to populate the filter type select
-function populateFilterTypeSelect(selectElement) {
-    if (!selectElement) return;
-    selectElement.innerHTML = ''; // Clear existing options
+// Function to populate the filter sidebar list
+function populateFilterSidebar(listElement) {
+    if (!listElement) return;
+    listElement.innerHTML = ''; // Clear existing items
+
     // Add the "Show All" option
-    const allOption = document.createElement('option');
-    allOption.value = '';
-    allOption.textContent = 'Show All Types';
-    selectElement.appendChild(allOption);
+    const allItem = document.createElement('li');
+    allItem.dataset.type = '';
+    allItem.textContent = 'Show All Types';
+    allItem.classList.add('selected'); // Initially show all
+    listElement.appendChild(allItem);
 
     thingsConfig.forEach(config => {
-        const option = document.createElement('option');
-        option.value = config.type;
-        option.textContent = config.type;
-        selectElement.appendChild(option);
+        const listItem = document.createElement('li');
+        listItem.dataset.type = config.type;
+        listItem.textContent = config.type;
+        listItem.classList.add('selected'); // Initially show all
+        listElement.appendChild(listItem);
     });
 }
 
@@ -58,4 +61,4 @@ function populateFilterTypeSelect(selectElement) {
 // Load config when the script is loaded
 loadThingsConfig();
 
-export { loadThingsConfig, getThingsConfig, getThingConfig, populateThingTypeSelect, populateFilterTypeSelect };
+export { loadThingsConfig, getThingsConfig, getThingConfig, populateThingTypeSelect, populateFilterSidebar };

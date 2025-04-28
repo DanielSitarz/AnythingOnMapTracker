@@ -12,14 +12,25 @@
 <body>
     <div id="map"></div>
     <!-- Floating Buttons -->
-    <div class="map-buttons">
-        <button id="add-thing-btn">➕ Add Thing</button>
-        <button id="import-csv-btn">📥 Import CSV</button>
-        <button id="export-csv-btn">📤 Export CSV</button>
-        <select id="filter-type">
-            <option value="">Show All Types</option>
-            <!-- Filter options will be populated by JavaScript -->
-        </select>
+    <!-- Filter Sidebar Toggle Button -->
+    <button id="filter-sidebar-toggle" class="btn">☰ Filter Types</button>
+
+    <!-- Filter Sidebar -->
+    <div id="filter-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Filter Types</h3>
+            <button class="close-sidebar-btn">&times;</button>
+        </div>
+        <ul id="filter-type-list" class="type-list">
+            <!-- Filter types will be populated by JavaScript -->
+        </ul>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <button id="add-thing-btn" class="btn">➕ Add</button>
+        <button id="import-csv-btn" class="btn">Import</button>
+        <button id="export-csv-btn" class="btn">Export</button>
     </div>
 
     <!-- Add/Edit Thing Modal -->
@@ -31,14 +42,14 @@
                 <input type="hidden" id="thing-id">
                 <div>
                     <label for="thing-type">Type:</label>
-                    <select id="thing-type" required>
+                    <select id="thing-type" required class="select-input">
                         <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
                 <div id="thing-details-container">
                     <!-- Dynamic detail fields will be added here by JavaScript -->
                 </div>
-                <button type="submit">Save Thing</button>
+                <button type="submit" class="btn">Save Thing</button>
             </form>
         </div>
     </div>
@@ -57,7 +68,7 @@
                 <input type="radio" id="import-merge" name="import-option" value="merge">
                 <label for="import-merge">Merge with existing data</label>
             </div>
-            <button id="process-import-btn">Import</button>
+            <button id="process-import-btn" class="btn">Import</button>
         </div>
     </div>
 

@@ -1,7 +1,7 @@
 import { saveThingToDB, updateThingInDB } from './database.js';
-import { renderThingsOnMap, getThings, setThings, currentMarkerLocation, map } from './map.js';
+import { renderThingsOnMap, getThings, setThings, map, setCurrentMarkerLocation, currentMarkerLocation } from './map.js';
 import { processCsvImport, exportThingsToCsv } from './csv.js';
-import { getThingsConfig, getThingConfig, populateThingTypeSelect, populateFilterTypeSelect } from './thingsConfig.js'; // Import new functions
+import { getThingsConfig, getThingConfig, populateThingTypeSelect, populateFilterSidebar } from './thingsConfig.js'; // Import new functions
 
 // Get modal elements
 const thingModal = document.getElementById('thing-modal');
@@ -19,7 +19,7 @@ const importCsvBtn = document.getElementById('import-csv-btn');
 const exportCsvBtn = document.getElementById('export-csv-btn');
 const processImportBtn = document.getElementById('process-import-btn');
 const csvFileInput = document.getElementById('csv-file');
-const filterTypeSelect = document.getElementById('filter-type'); // Get the filter select element
+const filterTypeSelect = document.getElementById('filter-type-list'); // Get the filter select element
 
 
 // Render dynamic detail fields based on selected thing type
@@ -47,6 +47,7 @@ function renderDetailFields(thingType, currentDetails = {}) {
                     break;
                 case 'select':
                     inputElement = document.createElement('select');
+                    inputElement.classList.add('select-input'); // Add the class
                     detail.options.forEach(optionValue => {
                         const option = document.createElement('option');
                         option.value = optionValue;
@@ -113,7 +114,7 @@ function openThingModal(title, thing = null, location = null) {
 
     thingModal.style.display = 'block';
     if (location) {
-        currentMarkerLocation = location;
+        setCurrentMarkerLocation(location);
     }
 }
 
@@ -190,14 +191,13 @@ thingForm.addEventListener('submit', async function(event) {
         longitude = existingThing.longitude;
     } else {
         // Adding new thing
-        if (currentMarkerLocation) {
-            latitude = currentMarkerLocation.lat;
-            longitude = currentMarkerLocation.lng;
-        } else {
-            // This case should ideally not happen if triggered by map click
-            console.error("No location available for new thing.");
-            return;
+        let location = currentMarkerLocation;
+        if (!location) {
+            // Default to map center if no marker location is set
+            location = map.getCenter();
         }
+        latitude = location.lat;
+        longitude = location.lng;
     }
 
 
@@ -237,6 +237,6 @@ thingForm.addEventListener('submit', async function(event) {
 
 // Initial population of thing types when the script loads
 populateThingTypeSelect(thingTypeSelect);
-populateFilterTypeSelect(filterTypeSelect); // Populate the filter select
+populateFilterSidebar(filterTypeSelect); // Populate the filter select
 
 export { openThingModal, closeModals, importModal, thingModal };

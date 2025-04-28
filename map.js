@@ -12,20 +12,18 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let things = []; // Store thing data locally
 
-// Function to render things on the map, with optional type filter
-function renderThingsOnMap(filterType = '') {
+// Store map layers by thing ID for easier access
+const thingLayers = new Map();
+
+// Function to render things on the map
+function renderThingsOnMap() {
     // Clear existing markers (if any)
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
+    thingLayers.forEach(layer => {
+        map.removeLayer(layer);
     });
+    thingLayers.clear();
 
-    const thingsToRender = filterType
-        ? things.filter(thing => thing.type === filterType)
-        : things;
-
-    thingsToRender.forEach(thing => {
+    things.forEach(thing => {
         const thingConfig = getThingConfig(thing.type);
         const markerColor = thingConfig ? thingConfig.markerColor : 'blue'; // Default to blue if config not found
 
@@ -65,10 +63,30 @@ function renderThingsOnMap(filterType = '') {
 
         marker.bindPopup(popupContent);
 
-         marker.on('popupopen', function() {
+        marker.on('popupopen', function() {
             document.querySelector(`.edit-thing[data-id="${thing.id}"]`).addEventListener('click', handleEditThing);
             document.querySelector(`.delete-thing[data-id="${thing.id}"]`).addEventListener('click', handleDeleteThing);
         });
+
+        thingLayers.set(thing.id, marker); // Store the marker layer
+    });
+}
+
+// Function to filter map markers by types
+function filterMapByTypes(typesToShow) {
+    thingLayers.forEach((layer, thingId) => {
+        const thing = things.find(t => t.id === thingId);
+        if (thing) {
+            if (typesToShow.includes(thing.type)) {
+                if (!map.hasLayer(layer)) {
+                    map.addLayer(layer);
+                }
+            } else {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                }
+            }
+        }
     });
 }
 
@@ -89,13 +107,23 @@ async function handleDeleteThing(event) {
     // Remove from array
     things = things.filter(thing => thing.id !== thingId);
     // Remove from DB
-    await deleteThingFromDB(thingId);
-    // Re-render map with current filter
-    const currentFilter = document.getElementById('filter-type').value;
-    renderThingsOnMap(currentFilter);
+   await deleteThingFromDB(thingId);
+   // Remove the layer from the map and the map
+   if (thingLayers.has(thingId)) {
+       const layer = thingLayers.get(thingId);
+       if (map.hasLayer(layer)) {
+           map.removeLayer(layer);
+       }
+       thingLayers.delete(thingId);
+   }
+   // The filter will be reapplied by the main.js logic after deletion
 }
 
 let currentMarkerLocation = null; // To store location when adding from button
+
+function setCurrentMarkerLocation(location) {
+    currentMarkerLocation = location;
+}
 
 // Update map click handler to open modal
 map.on('click', function(e) {
@@ -131,4 +159,4 @@ function getThings() {
     return things;
 }
 
-export { map, renderThingsOnMap, currentMarkerLocation, setThings, getThings };
+export { map, renderThingsOnMap, setThings, getThings, filterMapByTypes, setCurrentMarkerLocation, currentMarkerLocation };
