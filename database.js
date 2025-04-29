@@ -1,142 +1,120 @@
-// Initialize IndexedDB
-const dbName = 'thingTrackerDB';
-const dbVersion = 1; // Increment version if changing object store structure
-let db;
+// Data Storage Manager
 
-// Create a promise for DB readiness
-const dbReadyPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, dbVersion);
+import { getSelectedProviderName, getProviderConfig } from './configStorage.js';
+import * as indexedDBProvider from './indexedDBProvider.js';
+import * as jsonBinProvider from './jsonBinProvider.js';
+// Import other provider modules here
 
-    request.onerror = function(event) {
-        console.error("IndexedDB error:", event.target.errorCode);
-        reject(event.target.errorCode); // Reject the promise on error
-    };
+let activeProvider = null;
 
-    request.onsuccess = function(event) {
-        db = event.target.result;
-        console.log("IndexedDB opened successfully");
-        resolve(db); // Resolve the promise with the db instance
-    };
+// Map provider names to their modules
+const providers = {
+    indexedDB: indexedDBProvider,
+    jsonBin: jsonBinProvider
+    // Add other providers here
+};
 
-    request.onupgradeneeded = function(event) {
-        db = event.target.result;
-        // Check if the 'things' object store already exists before creating
-        if (!db.objectStoreNames.contains('things')) {
-            const objectStore = db.createObjectStore('things', { keyPath: 'id', autoIncrement: true });
-            objectStore.createIndex('location', ['latitude', 'longitude'], { unique: false });
-            objectStore.createIndex('type', 'type', { unique: false }); // Add index for type
-        }
-        // If upgrading from a previous version (e.g., v1 with 'lilacs'), handle migration here if necessary
-        // For this change, we are effectively starting fresh with a new DB name, so no migration needed from 'lilacTrackerDB'
-    };
-});
-
-
-// Function to load things from IndexedDB
-function loadThingsFromDB() {
-    return dbReadyPromise.then(() => { // Wait for the DB to be ready
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['things'], 'readonly');
-            const objectStore = transaction.objectStore('things');
-            const request = objectStore.getAll();
-
-            request.onsuccess = function(event) {
-                const things = event.target.result;
-                // console.log("Things loaded from DB:", things);
-                resolve(things);
-            };
-
-            request.onerror = function(event) {
-                console.error("Error loading things from DB:", event.target.errorCode);
-                reject(event.target.errorCode);
-            };
-        });
-    });
+/**
+ * Initializes the data storage manager by selecting the active provider
+ * based on the saved configuration.
+ */
+function initializeStorage() {
+    const selectedProviderName = getSelectedProviderName() || 'indexedDB'; // Default to indexedDB
+    setActiveProvider(selectedProviderName);
 }
 
-// Function to save a thing to IndexedDB
-function saveThingToDB(thing) {
-    return dbReadyPromise.then(() => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['things'], 'readwrite');
-            const objectStore = transaction.objectStore('things');
-            const request = objectStore.add(thing);
-
-            request.onsuccess = function(event) {
-                console.log("Thing saved to DB:", thing);
-                thing.id = event.target.result; // Update thing object with the generated ID
-                resolve(thing);
-            };
-
-            request.onerror = function(event) {
-                console.error("Error saving thing to DB:", event.target.errorCode);
-                reject(event.target.errorCode);
-            };
-        });
-    });
+/**
+ * Sets the active data storage provider.
+ * @param {string} providerName The name of the provider to set as active.
+ */
+function setActiveProvider(providerName) {
+    const provider = providers[providerName];
+    if (provider) {
+        activeProvider = provider;
+        console.log(`Active data storage provider set to: ${providerName}`);
+        // TODO: Potentially initialize the provider if needed (e.g., open DB connection)
+        // This might be handled within the provider's load function or a dedicated init function.
+    } else {
+        console.error(`Provider "${providerName}" not found. Falling back to IndexedDB.`);
+        activeProvider = indexedDBProvider; // Fallback to IndexedDB
+        // TODO: Update config to reflect fallback?
+    }
 }
 
-// Function to update a thing in IndexedDB
-function updateThingInDB(thing) {
-    return dbReadyPromise.then(() => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['things'], 'readwrite');
-            const objectStore = transaction.objectStore('things');
-            const request = objectStore.put(thing);
+// Expose the data storage interface functions, delegating to the active provider
 
-            request.onsuccess = function(event) {
-                console.log("Thing updated in DB:", thing);
-                resolve(thing);
-            };
-
-            request.onerror = function(event) {
-                console.error("Error updating thing in DB:", event.target.errorCode);
-                reject(event.target.errorCode);
-            };
-        });
-    });
+/**
+ * Asynchronously loads all "things" from the active storage provider.
+ * @returns {Promise<Array<Object>>} A promise that resolves with an array of thing objects.
+ */
+async function loadThings() {
+    if (!activeProvider || !activeProvider.loadThings) {
+        console.error("No active provider or loadThings function not available.");
+        return [];
+    }
+    return activeProvider.loadThings();
 }
 
-// Function to delete a thing from IndexedDB
-function deleteThingFromDB(thingId) {
-    return dbReadyPromise.then(() => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['things'], 'readwrite');
-            const objectStore = transaction.objectStore('things');
-            const request = objectStore.delete(thingId);
-
-            request.onsuccess = function(event) {
-                console.log("Thing deleted from DB with ID:", thingId);
-                resolve();
-            };
-
-            request.onerror = function(event) {
-                console.error("Error deleting thing from DB:", event.target.errorCode);
-                reject(event.target.errorCode);
-            };
-        });
-    });
+/**
+ * Asynchronously saves a single "thing" using the active storage provider.
+ * @param {Object} thing The thing object to save.
+ * @returns {Promise<Object>} A promise that resolves with the saved thing object.
+ */
+async function saveThing(thing) {
+    if (!activeProvider || !activeProvider.saveThing) {
+        console.error("No active provider or saveThing function not available.");
+        throw new Error("Save operation failed: Provider not ready.");
+    }
+    return activeProvider.saveThing(thing);
 }
 
-// Function to clear all things from IndexedDB
-function clearAllThingsFromDB() {
-    return dbReadyPromise.then(() => {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['things'], 'readwrite');
-            const objectStore = db.transaction(['things'], 'readwrite').objectStore('things');
-            const request = objectStore.clear();
-
-            request.onsuccess = function() {
-                console.log("All things cleared from DB.");
-                resolve();
-            };
-
-            request.onerror = function(event) {
-                console.error("Error clearing things from DB:", event.target.errorCode);
-                reject(event.target.errorCode);
-            };
-        });
-    });
+/**
+ * Asynchronously updates an existing "thing" using the active storage provider.
+ * @param {Object} thing The thing object to update.
+ * @returns {Promise<Object>} A promise that resolves with the updated thing object.
+ */
+async function updateThing(thing) {
+    if (!activeProvider || !activeProvider.updateThing) {
+        console.error("No active provider or updateThing function not available.");
+        throw new Error("Update operation failed: Provider not ready.");
+    }
+    return activeProvider.updateThing(thing);
 }
 
-export { loadThingsFromDB, saveThingToDB, updateThingInDB, deleteThingFromDB, clearAllThingsFromDB };
+/**
+ * Asynchronously deletes a "thing" using the active storage provider.
+ * @param {string|number} thingId The ID of the thing to delete.
+ * @returns {Promise<void>} A promise that resolves when the thing is deleted.
+ */
+async function deleteThing(thingId) {
+    if (!activeProvider || !activeProvider.deleteThing) {
+        console.error("No active provider or deleteThing function not available.");
+        throw new Error("Delete operation failed: Provider not ready.");
+    }
+    return activeProvider.deleteThing(thingId);
+}
+
+/**
+ * Asynchronously removes all "things" using the active storage provider.
+ * @returns {Promise<void>} A promise that resolves when all things are cleared.
+ */
+async function clearThings() {
+    if (!activeProvider || !activeProvider.clearThings) {
+        console.error("No active provider or clearThings function not available.");
+        throw new Error("Clear operation failed: Provider not ready.");
+    }
+    return activeProvider.clearThings();
+}
+
+// Initialize the storage manager when the module is loaded
+initializeStorage();
+
+// Export the interface functions
+export {
+    loadThings,
+    saveThing,
+    updateThing,
+    deleteThing,
+    clearThings,
+    setActiveProvider // Export setActiveProvider to allow config modal to change provider
+};

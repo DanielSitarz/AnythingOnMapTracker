@@ -1,6 +1,7 @@
-import { loadThingsFromDB } from './database.js';
+import { loadThings } from './database.js';
 import { renderThingsOnMap, setThings, filterMapByTypes, refreshCurrentLocation } from './map.js';
 import { getThingsConfig } from './thingsConfig.js'; // Import getThingsConfig
+import { openConfigModal } from './configModal.js'; // Import config modal initialization
 
 const filterSidebar = document.getElementById('filter-sidebar');
 const filterSidebarToggle = document.getElementById('filter-sidebar-toggle');
@@ -72,7 +73,7 @@ filterTypeList.addEventListener('click', (event) => {
 
 
 // Initial load of things from DB and render on map
-loadThingsFromDB().then(things => {
+loadThings().then(things => {
     setThings(things);
     renderThingsOnMap();
     // Initialize selected types after config is loaded and sidebar populated
@@ -86,6 +87,24 @@ loadThingsFromDB().then(things => {
 // Ensure those scripts are updated to target the buttons in the bottom bar if necessary.
 // If they are handled in main.js, they will automatically target the correct elements
 // as the IDs remain the same.
+
+// Initialize the configuration modal
+// The config modal is initialized by event listeners within configModal.js
+// No explicit initialization call is needed here.
+
+// Listen for a custom event from the config modal to reload data after config changes
+window.addEventListener('configSaved', async () => {
+    console.log("Configuration saved, reloading data...");
+    try {
+        const things = await loadThings();
+        console.log("Loaded things after config change:", things); // Add logging
+        setThings(things);
+        renderThingsOnMap();
+        updateMapFilter(); // Re-apply filter after reloading data
+    } catch (error) {
+        console.error("Failed to reload things after config change:", error);
+    }
+});
 
 // Handle refresh location button
 refreshLocationBtn.addEventListener('click', () => {

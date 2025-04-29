@@ -1,9 +1,9 @@
-import { deleteThingFromDB } from './database.js';
+import { deleteThing } from './database.js';
 import { openThingModal } from './modals.js';
 import { getThingConfig } from './thingsConfig.js';
 
 // Initialize the map
-const map = L.map('map', { maxZoom: 20 }).setView([50.0647, 19.9450], 16);
+const map = L.map('map', { maxZoom: 20 }).setView([50.0647, 19.9450], 8);
 
 // Add OpenStreetMap tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -113,12 +113,12 @@ function handleEditThing(event) {
 
 // Function to handle deleting a thing
 async function handleDeleteThing(event) {
-    const thingId = parseInt(event.target.dataset.id);
+    const thingId = event.target.dataset.id;
     console.log("Deleting thing with ID:", thingId);
     // Remove from array
     things = things.filter(thing => thing.id !== thingId);
     // Remove from DB
-   await deleteThingFromDB(thingId);
+   await deleteThing(thingId);
    // Remove the layer from the map and the map
    if (thingLayers.has(thingId)) {
        const layer = thingLayers.get(thingId);
@@ -159,7 +159,13 @@ function onLocationError(e) {
 map.on('locationerror', onLocationError);
 
 function setThings(newThings) {
-    things = newThings;
+    // Check if the data is in the { "things": [...] } format from JSONBIN.io
+    if (newThings && typeof newThings === 'object' && Array.isArray(newThings.things)) {
+        things = newThings.things;
+    } else {
+        // Otherwise, assume it's already the array of things
+        things = newThings;
+    }
 }
 
 function getThings() {

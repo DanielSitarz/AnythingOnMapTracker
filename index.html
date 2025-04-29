@@ -32,9 +32,10 @@
     <!-- Bottom Bar -->
     <div class="bottom-bar">
         <button id="add-thing-btn" class="btn">➕ Add</button>
-        <button id="import-csv-btn" class="btn">Import</button>
-        <button id="export-csv-btn" class="btn">Export</button>
+        <button style="display: none;" id="import-csv-btn" class="btn">Import</button>
+        <button style="display: none;" id="export-csv-btn" class="btn">Export</button>
         <button id="refresh-location-btn" class="btn">⟳ Refresh Location</button>
+        <button id="config-btn" class="btn">⚙️ Config</button>
     </div>
 
     <!-- Add/Edit Thing Modal -->
@@ -55,6 +56,7 @@
                 </div>
                 <button type="submit" class="btn">Save Thing</button>
             </form>
+            <div class="loading-spinner"></div>
         </div>
     </div>
 
@@ -89,5 +91,27 @@
     <script src="csv.js" type="module"></script>
     <script src="thingsConfig.js" type="module"></script>
     <script src="main.js" type="module"></script>
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Configuration</h2>
+            <form id="config-form">
+                <div>
+                    <label for="provider-select">Data Provider:</label>
+                    <select id="provider-select" class="select-input">
+                        <option value="indexedDB">IndexedDB (Local)</option>
+                        <option value="jsonBin">JSONBin.io (Online)</option>
+                        <!-- Add options for other providers here -->
+                    </select>
+                </div>
+                <div id="provider-config-container">
+                    <!-- Provider-specific configuration fields will be added here by JavaScript -->
+                </div>
+                <button type="submit" class="btn">Save Configuration</button>
+            </form>
+        </div>
+    </div>
+
 </body>
 </html>

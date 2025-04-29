@@ -1,4 +1,4 @@
-import { saveThingToDB, updateThingInDB } from './database.js';
+import { saveThing, updateThing } from './database.js';
 import { renderThingsOnMap, getThings, setThings, map, setCurrentMarkerLocation, currentMarkerLocation } from './map.js';
 import { processCsvImport, exportThingsToCsv } from './csv.js';
 import { getThingsConfig, getThingConfig, populateThingTypeSelect, populateFilterSidebar } from './thingsConfig.js'; // Import new functions
@@ -12,6 +12,8 @@ const modalTitle = document.getElementById('modal-title');
 const thingIdInput = document.getElementById('thing-id');
 const thingTypeSelect = document.getElementById('thing-type');
 const thingDetailsContainer = document.getElementById('thing-details-container');
+const thingModalContent = thingModal.querySelector('.modal-content');
+const loadingSpinner = thingModal.querySelector('.loading-spinner');
 
 // Get buttons and filter select
 const addThingBtn = document.getElementById('add-thing-btn');
@@ -124,6 +126,7 @@ function closeModals() {
     importModal.style.display = 'none';
     thingForm.reset(); // Reset the form when closing
     thingDetailsContainer.innerHTML = ''; // Clear dynamic fields
+    hideLoadingSpinner(); // Hide spinner when closing
 }
 
 // Close modals when clicking on the close button (x)
@@ -162,9 +165,21 @@ processImportBtn.addEventListener('click', function() {
 });
 
 
+// Show loading spinner
+function showLoadingSpinner() {
+    thingModalContent.classList.add('loading');
+}
+
+// Hide loading spinner
+function hideLoadingSpinner() {
+    thingModalContent.classList.remove('loading');
+}
+
 // Handle thing form submission
 thingForm.addEventListener('submit', async function(event) {
     event.preventDefault();
+
+    showLoadingSpinner(); // Show spinner on submit
 
     const id = thingIdInput.value ? parseInt(thingIdInput.value) : null;
     const type = thingTypeSelect.value;
@@ -221,17 +236,18 @@ thingForm.addEventListener('submit', async function(event) {
         if (index !== -1) {
             things[index] = thing;
             setThings(things);
-            await updateThingInDB(thing);
+            await updateThing(thing); // Corrected function call
         }
     } else {
         // Add new thing to array and DB
-        const savedThing = await saveThingToDB(thing);
+        const savedThing = await saveThing(thing);
         const things = getThings();
         things.push(savedThing);
         setThings(things);
     }
 
     renderThingsOnMap(); // Re-render map after saving/updating
+    hideLoadingSpinner(); // Hide spinner after saving/updating
     closeModals();
 });
 
