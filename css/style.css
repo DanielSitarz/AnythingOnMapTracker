@@ -441,3 +441,10 @@ body {
 .modal-content.loading .loading-spinner {
     display: block; /* Show spinner when loading */
 }
+
+@media (max-width: 600px) {
+    .modal-content {
+        margin: 5% 1rem;
+        width: calc(100% - 2rem); /* Adjust width to account for new margins */
+    }
+}
