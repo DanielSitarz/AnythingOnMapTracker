@@ -1,13 +1,14 @@
 [
   {
-    "type": "Lilac",    
-    "details": [    
+    "type": "Lilac",
+    "details": [
+      {"name": "Rating", "type": "select", "options": ["0", "1", "2", "3", "4", "5"]},
       {"name": "Timing", "type": "select", "options": ["early", "mid", "late"]}
     ]
   },
   {
-    "type": "Wild Strawberry",    
-    "details": [
+    "type": "Wild Strawberry",
+    "details": [      
       {"name": "Description", "type": "text"}
     ]
   }

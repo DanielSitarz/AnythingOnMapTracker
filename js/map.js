@@ -65,6 +65,11 @@ function renderThingsOnMap() {
         if (thing.note) {
              popupContent += `<p><b>Note:</b> ${thing.note}</p>`;
         }
+        if (thing.id) {
+            const creationDate = new Date(parseInt(thing.id)); // Assuming ID is a timestamp
+            const formattedDate = creationDate.toLocaleString(); // User-friendly format
+            popupContent += `<p><b>Date:</b> ${formattedDate}</p>`;
+        }
 
         popupContent += `
                 </div>

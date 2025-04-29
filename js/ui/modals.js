@@ -27,6 +27,17 @@ const filterTypeSelect = document.getElementById('filter-type-list'); // Get the
 // Render dynamic detail fields based on selected thing type
 function renderDetailFields(thingType, thing = null) {
     thingDetailsContainer.innerHTML = ''; // Clear existing fields
+
+    // Display creation date if editing/viewing
+    if (thing && thing.id) {
+        const creationDate = new Date(parseInt(thing.id)); // Assuming ID is a timestamp
+        const formattedDate = creationDate.toLocaleString(); // User-friendly format
+        const dateElement = document.createElement('p');
+        dateElement.innerHTML = `<strong>Created:</strong> ${formattedDate}`;
+        dateElement.style.marginBottom = '10px'; // Add some spacing
+        thingDetailsContainer.appendChild(dateElement);
+    }
+
     const thingConfig = getThingConfig(thingType);
     const currentDetails = thing ? thing.details : {};
     const currentColor = thing ? thing.color : '#808080'; // Get color from thing object
