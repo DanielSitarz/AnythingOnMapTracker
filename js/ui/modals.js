@@ -25,9 +25,11 @@ const filterTypeSelect = document.getElementById('filter-type-list'); // Get the
 
 
 // Render dynamic detail fields based on selected thing type
-function renderDetailFields(thingType, currentDetails = {}) {
+function renderDetailFields(thingType, thing = null) {
     thingDetailsContainer.innerHTML = ''; // Clear existing fields
     const thingConfig = getThingConfig(thingType);
+    const currentDetails = thing ? thing.details : {};
+    const currentColor = thing ? thing.color : '#808080'; // Get color from thing object
 
     if (thingConfig && thingConfig.details) {
         thingConfig.details.forEach(detail => {
@@ -81,11 +83,23 @@ function renderDetailFields(thingType, currentDetails = {}) {
     noteInput.value = currentDetails.note || '';
     thingDetailsContainer.appendChild(noteInput);
     thingDetailsContainer.appendChild(document.createElement('br'));
+
+    // Add color picker field
+    const colorLabel = document.createElement('label');
+    colorLabel.textContent = 'Marker Color:';
+    thingDetailsContainer.appendChild(colorLabel);
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.id = 'thing-color';
+    colorInput.name = 'color';
+    colorInput.value = currentColor; // Use the color from the thing object
+    thingDetailsContainer.appendChild(colorInput);
+    thingDetailsContainer.appendChild(document.createElement('br'));
 }
 
 // Event listener for thing type select change
 thingTypeSelect.addEventListener('change', function() {
-    renderDetailFields(this.value);
+    renderDetailFields(this.value); // Pass the selected type to re-render details
 });
 
 // Event listener for filter type select change
@@ -101,7 +115,7 @@ function openThingModal(title, thing = null, location = null) {
 
     if (thing) {
         thingTypeSelect.value = thing.type;
-        renderDetailFields(thing.type, thing.details);
+        renderDetailFields(thing.type, thing); // Pass the entire thing object
     } else {
         // For new things, select the first type and render its fields
         const firstThingType = getThingsConfig()[0]?.type;
@@ -181,9 +195,10 @@ thingForm.addEventListener('submit', async function(event) {
 
     showLoadingSpinner(); // Show spinner on submit
 
-    const id = thingIdInput.value ? parseInt(thingIdInput.value) : null;
+    const id = thingIdInput.value;
     const type = thingTypeSelect.value;
     const note = document.getElementById('thing-note').value; // Get the generic note field
+    const color = document.getElementById('thing-color').value; // Get the color value
 
     const details = {};
     const thingConfig = getThingConfig(type);
@@ -201,9 +216,19 @@ thingForm.addEventListener('submit', async function(event) {
 
     if (id) {
         // Editing existing thing
+        // Editing existing thing
+        // Find the existing thing using string comparison for ID compatibility
         const existingThing = getThings().find(thing => thing.id === id);
-        latitude = existingThing.latitude;
-        longitude = existingThing.longitude;
+        if (existingThing) {
+            latitude = existingThing.latitude;
+            longitude = existingThing.longitude;
+        } else {
+            console.error("Existing thing not found with ID:", id);
+            // Handle the case where the thing is not found - perhaps close modal or show error
+            hideLoadingSpinner();
+            closeModals();
+            return; // Stop the form submission process
+        }
     } else {
         // Adding new thing
         let location = currentMarkerLocation;
@@ -221,7 +246,8 @@ thingForm.addEventListener('submit', async function(event) {
         longitude: longitude,
         type: type,
         details: details,
-        note: note
+        note: note,
+        color: color // Add the color to the thing object
     };
 
     // Only include id if it exists (for updates)

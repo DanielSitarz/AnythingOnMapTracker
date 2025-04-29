@@ -26,7 +26,8 @@ function renderThingsOnMap() {
 
     things.forEach(thing => {
         const thingConfig = getThingConfig(thing.type);
-        const markerColor = thingConfig ? thingConfig.markerColor : 'blue'; // Default to blue if config not found
+        // Use thing's color if available, otherwise use config color, default to blue
+        const markerColor = thing.color || (thingConfig ? thingConfig.color : 'blue');
 
         const markerHtmlStyles = `
             background-color: ${markerColor};
@@ -103,7 +104,7 @@ function filterMapByTypes(typesToShow) {
 
 // Function to handle editing a thing
 function handleEditThing(event) {
-    const thingId = parseInt(event.target.dataset.id);
+    const thingId = event.target.dataset.id;
     const thingToEdit = things.find(thing => thing.id === thingId);
     if (thingToEdit) {
         console.log("Editing thing:", thingToEdit);

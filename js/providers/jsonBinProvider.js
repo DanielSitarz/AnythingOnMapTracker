@@ -104,7 +104,7 @@ async function saveThing(thing) {
     const things = Array.isArray(currentData) ? currentData : [];
     // Assign a simple unique ID for new items (timestamp + random)
     if (!thing.id) {
-        thing.id = Date.now() + Math.random().toString(36).substring(2, 15);
+        thing.id = Date.now().toString();
     }
     things.push(thing);
     // Wrap the array in the expected JSONBin.io structure

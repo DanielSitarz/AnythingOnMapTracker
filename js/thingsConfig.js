@@ -8,6 +8,13 @@ async function loadThingsConfig() {
         }
         thingsConfig = await response.json();
         console.log("Things configuration loaded:", thingsConfig);
+        // Ensure each thing config has a color property, default to a gray color if not present
+        thingsConfig = thingsConfig.map(config => {
+            if (!config.color) {
+                config.color = '#808080'; // Default gray color
+            }
+            return config;
+        });
         // After loading, populate the selects and the filter sidebar
         populateThingTypeSelect(document.getElementById('thing-type'));
         populateFilterSidebar(document.getElementById('filter-type-list'));

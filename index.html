@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thing Tracker</title>
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="leaflet.css">
+    <link rel="stylesheet" href="css/leaflet.css">
 <!-- Leaflet Markercluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="map"></div>
@@ -79,18 +79,18 @@
     </div>
 
     <!-- Leaflet JS -->
-    <script src="leaflet.js"></script>
+    <script src="js/vendor/leaflet.js"></script>
     <!-- PapaParse for CSV -->
 <!-- Leaflet Markercluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="papaparse.min.js"></script>
+    <script src="js/vendor/papaparse.min.js"></script>
     <!-- Custom JS -->
-    <script src="database.js" type="module"></script>
-    <script src="map.js" type="module"></script>
-    <script src="modals.js" type="module"></script>
-    <script src="csv.js" type="module"></script>
-    <script src="thingsConfig.js" type="module"></script>
-    <script src="main.js" type="module"></script>
+    <script src="js/utils/database.js" type="module"></script>
+    <script src="js/map.js" type="module"></script>
+    <script src="js/ui/modals.js" type="module"></script>
+    <script src="js/utils/csv.js" type="module"></script>
+    <script src="js/thingsConfig.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
     <!-- Configuration Modal -->
     <div id="config-modal" class="modal">
         <div class="modal-content">

@@ -1,5 +1,4 @@
 import { getThings, setThings, renderThingsOnMap } from '../map.js';
-import { saveThing, clearThings } from './database.js';
 import { closeModals } from '../ui/modals.js';
 
 // Function to export things to CSV
