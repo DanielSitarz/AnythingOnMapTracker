@@ -66,14 +66,9 @@ function loadCurrentConfig() {
     providerSelect.value = selectedProvider;
 
     // Render the configuration fields for the selected provider
-    renderProviderConfigFields(selectedProvider);
-
-    // Populate provider-specific fields with saved config
+    // Get and render the configuration fields for the selected provider, passing the current config
     const providerConfig = getProviderConfig(selectedProvider);
-    if (providerConfig) {
-        // Provider-specific fields are populated by the renderProviderConfigFields function
-        // when called with the currentConfig.
-    }
+    renderProviderConfigFields(selectedProvider, providerConfig);
 }
 
 // Event listeners

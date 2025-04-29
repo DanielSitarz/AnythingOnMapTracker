@@ -6,6 +6,7 @@ import * as jsonBinProvider from '../providers/jsonBinProvider.js';
 // Import other provider modules here
 
 let activeProvider = null;
+let dataUpdateCallback = null; // Callback to notify the application of data changes
 
 // Map provider names to their modules
 const providers = {
@@ -13,6 +14,20 @@ const providers = {
     jsonBin: jsonBinProvider
     // Add other providers here
 };
+
+/**
+ * Sets the callback function to be called when data is updated by the provider.
+ * This is used by the main application to react to data changes (e.g., auto-refresh).
+ * @param {function} callback The function to call with the updated data.
+ */
+function setDataUpdateCallback(callback) {
+    dataUpdateCallback = callback;
+    // If the current provider supports auto-refresh, start it with the new callback
+    if (activeProvider && activeProvider.startAutoRefresh && activeProvider === providers.jsonBin) {
+        activeProvider.startAutoRefresh(dataUpdateCallback);
+    }
+}
+
 
 /**
  * Initializes the data storage manager by selecting the active provider
@@ -28,12 +43,23 @@ function initializeStorage() {
  * @param {string} providerName The name of the provider to set as active.
  */
 function setActiveProvider(providerName) {
+    // Stop auto-refresh for the current provider if it supports it
+    if (activeProvider && activeProvider.stopAutoRefresh) {
+        activeProvider.stopAutoRefresh();
+    }
+
     const provider = providers[providerName];
     if (provider) {
         activeProvider = provider;
         console.log(`Active data storage provider set to: ${providerName}`);
         // TODO: Potentially initialize the provider if needed (e.g., open DB connection)
         // This might be handled within the provider's load function or a dedicated init function.
+
+        // Start auto-refresh for the new provider if it supports it and a callback is set
+        if (activeProvider.startAutoRefresh && dataUpdateCallback) {
+            activeProvider.startAutoRefresh(dataUpdateCallback);
+        }
+
     } else {
         console.error(`Provider "${providerName}" not found. Falling back to IndexedDB.`);
         activeProvider = indexedDBProvider; // Fallback to IndexedDB
@@ -116,5 +142,6 @@ export {
     updateThing,
     deleteThing,
     clearThings,
-    setActiveProvider // Export setActiveProvider to allow config modal to change provider
+    setActiveProvider, // Export setActiveProvider to allow config modal to change provider
+    setDataUpdateCallback // Export function to set the data update callback
 };

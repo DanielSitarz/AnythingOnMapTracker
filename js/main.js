@@ -1,4 +1,4 @@
-import { loadThings } from './utils/database.js';
+import { loadThings, setDataUpdateCallback } from './utils/database.js';
 import { renderThingsOnMap, setThings, filterMapByTypes, refreshCurrentLocation } from './map.js';
 import { getThingsConfig } from './thingsConfig.js'; // Import getThingsConfig
 import { openConfigModal } from './ui/configModal.js'; // Import config modal initialization
@@ -21,6 +21,14 @@ function updateMapFilter() {
         : Array.from(selectedTypes).filter(type => type !== ''); // Filter out '' if specific types are selected
 
     filterMapByTypes(typesToFilter);
+}
+
+// Function to handle data refresh from the provider
+function handleDataRefresh(things) {
+    console.log("Data refreshed, updating map:", things);
+    setThings(things);
+    renderThingsOnMap();
+    updateMapFilter(); // Re-apply filter after refreshing data
 }
 
 // Handle filter sidebar toggle
@@ -79,6 +87,10 @@ loadThings().then(things => {
     // Initialize selected types after config is loaded and sidebar populated
     selectedTypes.add(''); // Start with "Show All Types" selected
     updateMapFilter(); // Apply initial filter
+
+    // Set the data update callback for auto-refresh
+    setDataUpdateCallback(handleDataRefresh);
+
 }).catch(error => {
     console.error("Failed to load things on startup:", error);
 });
@@ -101,6 +113,10 @@ window.addEventListener('configSaved', async () => {
         setThings(things);
         renderThingsOnMap();
         updateMapFilter(); // Re-apply filter after reloading data
+
+        // Re-set the data update callback to ensure auto-refresh is started/stopped based on new config
+        setDataUpdateCallback(handleDataRefresh);
+
     } catch (error) {
         console.error("Failed to reload things after config change:", error);
     }
